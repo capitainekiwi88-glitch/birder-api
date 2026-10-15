@@ -1,14 +1,15 @@
 import io
 import os
 from contextlib import asynccontextmanager
+import torch
 
 import birder
 import numpy as np
 from birder.inference.classification import infer_image
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image, UnidentifiedImageError
-
-MODEL_NAME = os.getenv("BIRDER_MODEL", "mvit_v2_t_il-all")
+torch.set_num_threads(1)  # Sinon ça crash car trop gourmand
+MODEL_NAME = os.getenv("BIRDER_MODEL", "regnet_y_1_6g_eu-common")
 MAX_SIZE = 10 * 1024 * 1024  # 10 Mo
 
 state = {}
@@ -45,6 +46,7 @@ def predict(file: UploadFile = File(...), top_k: int = 3):
 
     try:
         image = Image.open(io.BytesIO(data)).convert("RGB")
+        image.thumbnail((1024, 1024))
     except UnidentifiedImageError:
         raise HTTPException(400, "Image illisible.")
 
