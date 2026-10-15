@@ -37,8 +37,11 @@ def home():
 
 @app.post("/predict")
 def predict(file: UploadFile = File(...), top_k: int = 3):
-    if not (file.content_type or "").startswith("image/"):
-        raise HTTPException(400, "Le fichier doit être une image.")
+    if file.content_type and not (
+    file.content_type.startswith("image/")
+    or file.content_type == "application/octet-stream"
+):
+    raise HTTPException(400, "Le fichier doit être une image.")
 
     data = file.file.read()
     if len(data) > MAX_SIZE:
